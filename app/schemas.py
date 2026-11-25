@@ -4,11 +4,15 @@ from app.models import Unit
 
 
 class AuthorCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(min_length=1, max_length=100)
     email: EmailStr
 
 
 class AuthorUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str | None = Field(default=None, min_length=1, max_length=100)
     email: EmailStr | None = None
 
@@ -22,6 +26,8 @@ class AuthorRead(BaseModel):
 
 
 class CategoryCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(min_length=1, max_length=100)
 
 
@@ -33,6 +39,8 @@ class CategoryRead(BaseModel):
 
 
 class IngredientCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(min_length=1, max_length=100)
 
 
@@ -44,6 +52,8 @@ class IngredientRead(BaseModel):
 
 
 class RecipeCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     title: str = Field(min_length=1, max_length=200)
     instructions: str = Field(min_length=1)
     prep_time_minutes: int = Field(gt=0)
@@ -53,6 +63,8 @@ class RecipeCreate(BaseModel):
 
 
 class RecipeUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     title: str | None = Field(default=None, min_length=1, max_length=200)
     instructions: str | None = Field(default=None, min_length=1)
     prep_time_minutes: int | None = Field(default=None, gt=0)
