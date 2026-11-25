@@ -2,9 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import RecipeCreate, RecipeRead, RecipeUpdate
+from app.schemas import (
+    RecipeCreate,
+    RecipeIngredientCreate,
+    RecipeIngredientRead,
+    RecipeIngredientUpdate,
+    RecipeRead,
+    RecipeUpdate,
+)
 from app.services import authors as authors_service
 from app.services import categories as categories_service
+from app.services import ingredients as ingredients_service
 from app.services import recipes as service
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
@@ -54,3 +62,40 @@ def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
     service.delete_recipe(db, recipe)
+
+
+@router.get("/{recipe_id}/ingredients", response_model=list[RecipeIngredientRead])
+def list_recipe_ingredients(recipe_id: int, db: Session = Depends(get_db)):
+    recipe = service.get_recipe(db, recipe_id)
+    if recipe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+    return recipe.ingredients
+
+
+@router.post("/{recipe_id}/ingredients", response_model=RecipeIngredientRead, status_code=status.HTTP_201_CREATED)
+def add_recipe_ingredient(recipe_id: int, data: RecipeIngredientCreate, db: Session = Depends(get_db)):
+    if service.get_recipe(db, recipe_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+    if ingredients_service.get_ingredient(db, data.ingredient_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not found")
+    if service.get_recipe_ingredient(db, recipe_id, data.ingredient_id):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ingredient already in recipe")
+    return service.add_ingredient(db, recipe_id, data)
+
+
+@router.put("/{recipe_id}/ingredients/{ingredient_id}", response_model=RecipeIngredientRead)
+def update_recipe_ingredient(
+    recipe_id: int, ingredient_id: int, data: RecipeIngredientUpdate, db: Session = Depends(get_db)
+):
+    item = service.get_recipe_ingredient(db, recipe_id, ingredient_id)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not in recipe")
+    return service.update_ingredient(db, item, data)
+
+
+@router.delete("/{recipe_id}/ingredients/{ingredient_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_recipe_ingredient(recipe_id: int, ingredient_id: int, db: Session = Depends(get_db)):
+    item = service.get_recipe_ingredient(db, recipe_id, ingredient_id)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not in recipe")
+    service.remove_ingredient(db, item)

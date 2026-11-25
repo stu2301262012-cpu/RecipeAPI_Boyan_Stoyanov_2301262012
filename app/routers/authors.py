@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import AuthorCreate, AuthorRead, AuthorUpdate
+from app.schemas import AuthorCreate, AuthorRead, AuthorUpdate, RecipeRead
 from app.services import authors as service
+from app.services import recipes as recipes_service
 
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
@@ -48,3 +49,10 @@ def delete_author(author_id: int, db: Session = Depends(get_db)):
     if author.recipes:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Author has recipes")
     service.delete_author(db, author)
+
+
+@router.get("/{author_id}/recipes", response_model=list[RecipeRead])
+def list_author_recipes(author_id: int, db: Session = Depends(get_db)):
+    if service.get_author(db, author_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found")
+    return recipes_service.get_recipes_by_author(db, author_id)

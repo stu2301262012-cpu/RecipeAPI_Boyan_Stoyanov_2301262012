@@ -78,6 +78,11 @@ class RecipeIngredientCreate(BaseModel):
     unit: Unit
 
 
+class RecipeIngredientUpdate(BaseModel):
+    quantity: float = Field(gt=0)
+    unit: Unit
+
+
 class RecipeIngredientRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
