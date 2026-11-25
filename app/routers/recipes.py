@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -19,8 +19,13 @@ router = APIRouter(prefix="/recipes", tags=["Recipes"])
 
 
 @router.get("/", response_model=list[RecipeRead])
-def list_recipes(db: Session = Depends(get_db)):
-    return service.get_recipes(db)
+def list_recipes(
+    title: str | None = None,
+    category_id: int | None = None,
+    max_prep_time: int | None = None,
+    db: Session = Depends(get_db),
+):
+    return service.get_recipes(db, title, category_id, max_prep_time)
 
 
 @router.get("/{recipe_id}", response_model=RecipeRead)
@@ -29,6 +34,14 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
     return recipe
+
+
+@router.get("/{recipe_id}/scaled", response_model=RecipeRead)
+def get_scaled_recipe(recipe_id: int, servings: int = Query(gt=0, le=62), db: Session = Depends(get_db)):
+    recipe = service.get_recipe(db, recipe_id)
+    if recipe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+    return service.scale_recipe(recipe, servings)
 
 
 @router.post("/", response_model=RecipeRead, status_code=status.HTTP_201_CREATED)

@@ -2,11 +2,27 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Recipe, RecipeIngredient
-from app.schemas import RecipeCreate, RecipeIngredientCreate, RecipeIngredientUpdate, RecipeUpdate
+from app.schemas import RecipeCreate, RecipeIngredientCreate, RecipeIngredientUpdate, RecipeRead, RecipeUpdate
 
 
-def get_recipes(db: Session):
-    return db.scalars(select(Recipe)).all()
+def get_recipes(db: Session, title: str | None, category_id: int | None, max_prep_time: int | None):
+    query = select(Recipe)
+    if title:
+        query = query.where(Recipe.title.ilike(f"%{title.strip()}%"))
+    if category_id is not None:
+        query = query.where(Recipe.category_id == category_id)
+    if max_prep_time is not None:
+        query = query.where(Recipe.prep_time_minutes <= max_prep_time)
+    return db.scalars(query).all()
+
+
+def scale_recipe(recipe: Recipe, servings: int):
+    result = RecipeRead.model_validate(recipe)
+    factor = servings / recipe.servings
+    result.servings = servings
+    for item in result.ingredients:
+        item.quantity = round(item.quantity * factor, 2)
+    return result
 
 
 def get_recipe(db: Session, recipe_id: int):
