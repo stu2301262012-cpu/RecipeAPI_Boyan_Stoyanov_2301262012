@@ -10,6 +10,7 @@ Author: Boyan Stoyanov, faculty number 2301262012
 python3.12 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+alembic upgrade head
 ```
 
 ## Run
