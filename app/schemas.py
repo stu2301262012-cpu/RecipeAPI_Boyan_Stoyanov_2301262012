@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.models import Unit
+from app.models import Difficulty, Unit
 
 
 class AuthorCreate(BaseModel):
@@ -58,6 +58,7 @@ class RecipeCreate(BaseModel):
     instructions: str = Field(min_length=1)
     prep_time_minutes: int = Field(gt=0)
     servings: int = Field(gt=0)
+    difficulty: Difficulty
     author_id: int
     category_id: int | None = None
 
@@ -69,6 +70,7 @@ class RecipeUpdate(BaseModel):
     instructions: str | None = Field(default=None, min_length=1)
     prep_time_minutes: int | None = Field(default=None, gt=0)
     servings: int | None = Field(default=None, gt=0)
+    difficulty: Difficulty | None = None
     category_id: int | None = None
 
 
@@ -100,6 +102,7 @@ class RecipeRead(BaseModel):
     instructions: str
     prep_time_minutes: int
     servings: int
+    difficulty: Difficulty
     author_id: int
     category_id: int | None
     ingredients: list[RecipeIngredientRead] = []

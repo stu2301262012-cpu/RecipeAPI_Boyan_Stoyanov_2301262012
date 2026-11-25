@@ -12,6 +12,12 @@ class Unit(str, enum.Enum):
     pcs = "pcs"
 
 
+class Difficulty(str, enum.Enum):
+    easy = "easy"
+    medium = "medium"
+    hard = "hard"
+
+
 class Author(Base):
     __tablename__ = "authors"
 
@@ -48,6 +54,7 @@ class Recipe(Base):
     instructions: Mapped[str] = mapped_column(Text)
     prep_time_minutes: Mapped[int]
     servings: Mapped[int]
+    difficulty: Mapped[Difficulty] = mapped_column(Enum(Difficulty), server_default="easy")
     author_id: Mapped[int] = mapped_column(ForeignKey("authors.id", ondelete="RESTRICT"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
 
